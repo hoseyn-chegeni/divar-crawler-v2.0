@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  jobs:
+    build:
+      context: ./jobs
+      dockerfile: Dockerfile
+    container_name: jobs_service
+    ports:
+      - "8000:8000"
+    networks:
+      - divar_network
+
+
+  crawler:
+    build:
+      context: ./crawler
+      dockerfile: Dockerfile
+    container_name: crawler_service
+    ports:
+      - "8001:8001"
+    networks:
+      - divar_network
+
+
+networks:
+  divar_network:
+    driver: bridge
