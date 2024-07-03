@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import List
 
 
-
 class JobBase(BaseModel):
     title: str
     description: str
