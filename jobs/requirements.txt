@@ -3,3 +3,5 @@ uvicorn[standard]
 pydantic
 requests
 SQLAlchemy
+celery[redis]
+redis

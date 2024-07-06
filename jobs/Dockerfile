@@ -12,8 +12,8 @@ COPY requirements.txt /app/requirements.txt
 # Install any dependencies
 RUN pip install -r /app/requirements.txt
 
-# Expose port 8000 for the crawler service
+# Expose port 8000 for the jobs service
 EXPOSE 8000
 
-# Command to run the crawler service
+# Command to run the jobs service
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -10,7 +10,9 @@ services:
       - "8000:8000"
     networks:
       - divar_network
-
+    depends_on:
+      - redis
+      - celery_worker
 
   crawler:
     build:
@@ -21,7 +23,24 @@ services:
       - "8001:8001"
     networks:
       - divar_network
+    depends_on:
+      - redis
+      - celery_worker
 
+  redis:
+    image: redis:6.0-alpine
+    container_name: redis
+    networks:
+      - divar_network
+
+  celery_worker:
+    build:
+      context: ./jobs
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    command: celery -A main.celery worker --loglevel=info
+    networks:
+      - divar_network
 
 networks:
   divar_network:
