@@ -7,7 +7,7 @@ from .crud import get_posts, create_post
 from .schemas import Post, PostCreate
 from.models import Base
 from .database import SessionLocal, engine, get_db
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -16,10 +16,15 @@ from pydantic import BaseModel
 router = APIRouter()
 
 
-
+# Define the request model
 class CityIDRequest(BaseModel):
     city_ids: List[str]
+    category: Optional[str] = None
 
+# Initialize the FastAPI router
+router = APIRouter()
+
+# Assuming Post, PostCreate, and create_post are already defined from your models and CRUD operations
 @router.post("/fetch-data", response_model=List[Post])
 def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     url = "https://api.divar.ir/v8/postlist/w/search"
@@ -40,13 +45,7 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
             "city_ids": request.city_ids,
             "search_data": {
                 "form_data": {
-                    "data": {
-                        "category": {
-                            "str": {
-                                "value": "ROOT"
-                            }
-                        }
-                    }
+                    "data": {}
                 }
             },
             "pagination_data": {
@@ -58,6 +57,20 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
             }
         }
         
+        # Add category to the request body if provided
+        if request.category:
+            body["search_data"]["form_data"]["data"]["category"] = {
+                "str": {
+                    "value": request.category
+                }
+            }
+        else:
+            body["search_data"]["form_data"]["data"]["category"] = {
+                "str": {
+                    "value": "ROOT"
+                }
+            }
+
         response = requests.post(url, json=body, headers=headers)
         
         if response.status_code != 200:
