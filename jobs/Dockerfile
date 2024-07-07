@@ -12,6 +12,7 @@ COPY requirements.txt /app/requirements.txt
 # Install any dependencies
 RUN pip install -r /app/requirements.txt
 
+ENV PYTHONPATH=/app
 # Expose port 8000 for the jobs service
 EXPOSE 8000
 
