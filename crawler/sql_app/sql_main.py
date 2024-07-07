@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Depends, HTTPException,APIRouter
 from sqlalchemy.orm import Session
 import requests
@@ -11,20 +10,17 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-
-
-router = APIRouter()
-
-
-# Define the request model
-class CityIDRequest(BaseModel):
-    city_ids: List[str]
-    category: Optional[str] = None
-
 # Initialize the FastAPI router
 router = APIRouter()
 
-# Assuming Post, PostCreate, and create_post are already defined from your models and CRUD operations
+class CityIDRequest(BaseModel):
+    city_ids: List[str]
+    category: Optional[str] = None
+    query: Optional[str] = None
+    num_posts: Optional[int] = 10
+
+
+
 @router.post("/fetch-data", response_model=List[Post])
 def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     url = "https://api.divar.ir/v8/postlist/w/search"
@@ -35,8 +31,9 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     last_post_date = datetime.utcnow()
     
     all_saved_posts = []
+    posts_to_save = request.num_posts
     
-    while page <= 10:
+    while page <= 10 and len(all_saved_posts) < posts_to_save:
         # Adjust last_post_date to be 30 minutes earlier
         last_post_date -= timedelta(minutes=30)
         
@@ -71,6 +68,10 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
                 }
             }
 
+        # Add query to the request body if provided
+        if request.query:
+            body["search_data"]["query"] = request.query
+
         response = requests.post(url, json=body, headers=headers)
         
         if response.status_code != 200:
@@ -95,8 +96,10 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
                 )
                 saved_post = create_post(db=db, post=post)
                 saved_posts.append(saved_post)
-        
-        all_saved_posts.extend(saved_posts)
+                all_saved_posts.append(saved_post)  # Append to all_saved_posts
+
+                if len(all_saved_posts) >= posts_to_save:
+                    break  # Exit the loop if desired number of posts saved
         
         # Increment page and layer_page for the next request
         page += 1
