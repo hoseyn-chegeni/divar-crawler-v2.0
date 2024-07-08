@@ -20,95 +20,95 @@ class CityIDRequest(BaseModel):
     num_posts: Optional[int] = 10
 
 
+is_busy = False
 
 @router.post("/fetch-data", response_model=List[Post])
 def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
-    url = "https://api.divar.ir/v8/postlist/w/search"
-    headers = {"Content-Type": "application/json"}
-    
-    page = 1
-    layer_page = 1
-    last_post_date = datetime.utcnow()
-    
-    all_saved_posts = []
-    posts_to_save = request.num_posts
-    
-    while page <= 10 and len(all_saved_posts) < posts_to_save:
-        # Adjust last_post_date to be 30 minutes earlier
-        last_post_date -= timedelta(minutes=30)
+    global is_busy
+    is_busy = True
+    try:
+        url = "https://api.divar.ir/v8/postlist/w/search"
+        headers = {"Content-Type": "application/json"}
         
-        # Define the body with the predefined structure and add the city_id
-        body = {
-            "city_ids": request.city_ids,
-            "search_data": {
-                "form_data": {
-                    "data": {}
-                }
-            },
-            "pagination_data": {
-                "@type": "type.googleapis.com/post_list.PaginationData",
-                "last_post_date": last_post_date.isoformat() + 'Z',
-                "layer_page": layer_page,
-                "page": page,
-                "search_uid": "d33a69a6-d2cc-4b10-8ae4-2d47c4e3a8bf"
-            }
-        }
+        page = 1
+        layer_page = 1
+        last_post_date = datetime.utcnow()
         
-        # Add category to the request body if provided
-        if request.category:
-            body["search_data"]["form_data"]["data"]["category"] = {
-                "str": {
-                    "value": request.category
+        all_saved_posts = []
+        posts_to_save = request.num_posts
+        
+        while page <= 10 and len(all_saved_posts) < posts_to_save:
+            last_post_date -= timedelta(minutes=30)
+            body = {
+                "city_ids": request.city_ids,
+                "search_data": {
+                    "form_data": {
+                        "data": {}
+                    }
+                },
+                "pagination_data": {
+                    "@type": "type.googleapis.com/post_list.PaginationData",
+                    "last_post_date": last_post_date.isoformat() + 'Z',
+                    "layer_page": layer_page,
+                    "page": page,
+                    "search_uid": "d33a69a6-d2cc-4b10-8ae4-2d47c4e3a8bf"
                 }
             }
-        else:
-            body["search_data"]["form_data"]["data"]["category"] = {
-                "str": {
-                    "value": "ROOT"
+            
+            if request.category:
+                body["search_data"]["form_data"]["data"]["category"] = {
+                    "str": {
+                        "value": request.category
+                    }
                 }
-            }
-
-        # Add query to the request body if provided
-        if request.query:
-            body["search_data"]["query"] = request.query
-
-        response = requests.post(url, json=body, headers=headers)
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch data")
-
-        data = response.json()
-        
-        # Extract list_widgets
-        post_data = data.get('list_widgets', [])
-        
-        if not post_data:
-            break  # Exit the loop if no more posts are available
-        
-        # Filter and save posts to the database
-        saved_posts = []
-        for item in post_data:
-            if item.get('data', {}).get('@type') == 'type.googleapis.com/widgets.PostRowData':
-                post_dict = item['data']
-                post = PostCreate(
-                    title=post_dict['title'],
-                    token=post_dict['action']['payload']['token'],
-                    city=post_dict['action']['payload']['web_info']['city_persian'],
-                    district=post_dict['action']['payload']['web_info']['district_persian'],
-                )
-                saved_post = create_post(db=db, post=post)
-                saved_posts.append(saved_post)
-                all_saved_posts.append(saved_post)  # Append to all_saved_posts
-
-                if len(all_saved_posts) >= posts_to_save:
-                    break  # Exit the loop if desired number of posts saved
-        
-        # Increment page and layer_page for the next request
-        page += 1
-        layer_page += 1
+            else:
+                body["search_data"]["form_data"]["data"]["category"] = {
+                    "str": {
+                        "value": "ROOT"
+                    }
+                }
+    
+            if request.query:
+                body["search_data"]["query"] = request.query
+    
+            response = requests.post(url, json=body, headers=headers)
+            
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="Failed to fetch data")
+    
+            data = response.json()
+            post_data = data.get('list_widgets', [])
+            
+            if not post_data:
+                break
+            
+            saved_posts = []
+            for item in post_data:
+                if item.get('data', {}).get('@type') == 'type.googleapis.com/widgets.PostRowData':
+                    post_dict = item['data']
+                    post = PostCreate(
+                        title=post_dict['title'],
+                        token=post_dict['action']['payload']['token'],
+                        city=post_dict['action']['payload']['web_info']['city_persian'],
+                        district=post_dict['action']['payload']['web_info']['district_persian'],
+                    )
+                    saved_post = create_post(db=db, post=post)
+                    saved_posts.append(saved_post)
+                    all_saved_posts.append(saved_post)
+    
+                    if len(all_saved_posts) >= posts_to_save:
+                        break
+            
+            page += 1
+            layer_page += 1
+    finally:
+        is_busy = False
 
     return all_saved_posts
 
+@router.get("/status")
+def get_status():
+    return {"status": "busy" if is_busy else "free"}
 @router.get("/posts/", response_model=List[Post])
 def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     posts = get_posts(db, skip=skip, limit=limit)
