@@ -8,3 +8,4 @@ class Post(Base):
     title = Column(String, index=True)
     token = Column(String, unique=True, index=True)
     city = Column(String, index=True)
+    district = Column(String, index=True)

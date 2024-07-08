@@ -4,6 +4,7 @@ class PostBase(BaseModel):
     title: str
     token: str
     city:str
+    district: str
 class PostCreate(PostBase):
     pass
 
