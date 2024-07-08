@@ -3,6 +3,7 @@ from pydantic import BaseModel
 class PostBase(BaseModel):
     title: str
     token: str
+    city:str
 class PostCreate(PostBase):
     pass
 

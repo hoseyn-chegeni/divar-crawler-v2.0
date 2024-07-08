@@ -92,7 +92,9 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
                 post_dict = item['data']
                 post = PostCreate(
                     title=post_dict['title'],
-                    token=post_dict['action']['payload']['token']
+                    token=post_dict['action']['payload']['token'],
+                    city=post_dict['action']['payload']['web_info']['city_persian']
+
                 )
                 saved_post = create_post(db=db, post=post)
                 saved_posts.append(saved_post)

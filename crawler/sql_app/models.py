@@ -7,3 +7,4 @@ class Post(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     token = Column(String, unique=True, index=True)
+    city = Column(String, index=True)
