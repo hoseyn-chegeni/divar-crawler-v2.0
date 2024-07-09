@@ -7,9 +7,9 @@ def check_crawler_status_task():
     try:
         # Replace with the actual URL of your FastAPI server
         fastapi_url = "http://jobs_service:8000/crawler-status"
-        
+
         response = requests.get(fastapi_url)
-        
+
         if response.status_code == 200:
             status = response.json()
             print(f"Crawler status: {status['crawler_status']}")

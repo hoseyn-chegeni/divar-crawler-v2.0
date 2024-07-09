@@ -28,16 +28,23 @@ def check_crawler_status():
             status = response.json()
             return {"crawler_status": status["status"]}
         else:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch crawler status")
+            raise HTTPException(
+                status_code=response.status_code,
+                detail="Failed to fetch crawler status",
+            )
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail="Crawler service is not available") from e
-    
+        raise HTTPException(
+            status_code=500, detail="Crawler service is not available"
+        ) from e
+
 
 @app.post("/send-job")
 def send_job(request: CityIDRequest):
     status = check_crawler_status()
     if status["crawler_status"] == "busy":
-        raise HTTPException(status_code=400, detail="Crawler is currently busy. Please try again later.")
+        raise HTTPException(
+            status_code=400, detail="Crawler is currently busy. Please try again later."
+        )
 
     crawler_url = "http://crawler_service:8001/api/v1/fetch-data"
     try:
@@ -45,7 +52,10 @@ def send_job(request: CityIDRequest):
         if response.status_code == 200:
             return response.json()
         else:
-            raise HTTPException(status_code=response.status_code, detail="Failed to send job to crawler")
+            raise HTTPException(
+                status_code=response.status_code, detail="Failed to send job to crawler"
+            )
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail="Crawler service is not available") from e 
-
+        raise HTTPException(
+            status_code=500, detail="Crawler service is not available"
+        ) from e
