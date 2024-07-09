@@ -114,6 +114,6 @@ def get_status():
 
 
 @router.get("/posts/", response_model=List[Post])
-def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def read_posts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     posts = get_posts(db, skip=skip, limit=limit)
     return posts

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from sql_app import models
 from sql_app.database import engine
 from sql_app import sql_main
@@ -41,17 +41,16 @@ def check_crawler_status():
         ) from e
 
 
-@app.post("/send_job/{job_name}")
-async def send_job(job_name: str):
-    # Push job to Redis queue
-    redis_client.lpush('jobs_queue', job_name)
-    return {"message": f"Job '{job_name}' sent to the queue"}
 
+@app.post("/send_job/")
+async def send_job(request: CityIDRequest = Body(...)):
+    # Push job to Redis queue
+    redis_client.lpush('jobs_queue', request.json())
+    return {"message": "Job sent to the queue", "data": request.dict()}
 
 @app.get("/queue_instances")
 async def get_queue_instances():
     # Retrieve all elements in the queue
     queue_length = redis_client.llen('jobs_queue')
-    instances = [redis_client.lindex('jobs_queue', i).decode('utf-8') 
-                 for i in range(queue_length)]
+    instances = [redis_client.lindex('jobs_queue', i) for i in range(queue_length)]
     return {"instances_in_queue": instances}
