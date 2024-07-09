@@ -5,8 +5,11 @@ from sql_app import sql_main
 import requests
 from pydantic import BaseModel
 from celery import shared_task
+import redis
+
 
 models.Base.metadata.create_all(bind=engine)
+redis_client = redis.Redis(host='redis', port=6379)
 
 app = FastAPI()
 app.include_router(sql_main.router, prefix="/api/v1")
@@ -38,24 +41,17 @@ def check_crawler_status():
         ) from e
 
 
-@app.post("/send-job")
-def send_job(request: CityIDRequest):
-    status = check_crawler_status()
-    if status["crawler_status"] == "busy":
-        raise HTTPException(
-            status_code=400, detail="Crawler is currently busy. Please try again later."
-        )
+@app.post("/send_job/{job_name}")
+async def send_job(job_name: str):
+    # Push job to Redis queue
+    redis_client.lpush('jobs_queue', job_name)
+    return {"message": f"Job '{job_name}' sent to the queue"}
 
-    crawler_url = "http://crawler_service:8001/api/v1/fetch-data"
-    try:
-        response = requests.post(crawler_url, json=request.dict())
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise HTTPException(
-                status_code=response.status_code, detail="Failed to send job to crawler"
-            )
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(
-            status_code=500, detail="Crawler service is not available"
-        ) from e
+
+@app.get("/queue_instances")
+async def get_queue_instances():
+    # Retrieve all elements in the queue
+    queue_length = redis_client.llen('jobs_queue')
+    instances = [redis_client.lindex('jobs_queue', i).decode('utf-8') 
+                 for i in range(queue_length)]
+    return {"instances_in_queue": instances}
