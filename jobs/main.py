@@ -4,7 +4,7 @@ from sql_app.database import engine
 from sql_app import sql_main
 import requests
 from pydantic import BaseModel
-
+from celery import shared_task
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -35,12 +35,10 @@ def check_crawler_status():
 
 @app.post("/send-job")
 def send_job(request: CityIDRequest):
-    # Check the status of the crawler
     status = check_crawler_status()
     if status["crawler_status"] == "busy":
         raise HTTPException(status_code=400, detail="Crawler is currently busy. Please try again later.")
 
-    # If crawler is free, send the job
     crawler_url = "http://crawler_service:8001/api/v1/fetch-data"
     try:
         response = requests.post(crawler_url, json=request.dict())
@@ -49,4 +47,5 @@ def send_job(request: CityIDRequest):
         else:
             raise HTTPException(status_code=response.status_code, detail="Failed to send job to crawler")
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail="Crawler service is not available") from e
+        raise HTTPException(status_code=500, detail="Crawler service is not available") from e 
+

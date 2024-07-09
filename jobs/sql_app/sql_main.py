@@ -6,7 +6,6 @@ from .database import get_db
 from typing import List
 import redis
 
-
 celery = Celery(
     __name__,
     broker='redis://redis:6379/0',
@@ -16,6 +15,7 @@ redis_client = redis.StrictRedis(host='redis', port=6379, db=0)
 
 
 router = APIRouter()
+
 
 
 @celery.task
