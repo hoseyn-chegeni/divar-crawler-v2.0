@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 import requests
 from datetime import datetime, timedelta
 from .crud import get_posts, create_post
 from .schemas import Post, PostCreate
-from .models import Base
-from .database import SessionLocal, engine, get_db
+from .database import get_db
 from typing import List, Optional
 from pydantic import BaseModel
 

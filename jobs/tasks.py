@@ -14,8 +14,8 @@ def check_crawler_status_task():
 
         if response.status_code == 200:
             status = response.json()
-            if status['crawler_status'] == 'free':
-                job_data = redis_client.rpop('jobs_queue')
+            if status["crawler_status"] == "free":
+                job_data = redis_client.rpop("jobs_queue")
                 if job_data:
                     job_request = json.loads(job_data)
                     response = requests.post(fastapi_fetch_data_url, json=job_request)
