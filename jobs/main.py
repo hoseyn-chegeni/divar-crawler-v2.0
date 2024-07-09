@@ -1,12 +1,13 @@
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Depends
 from sql_app import models
-from sql_app.database import engine
+from sql_app.database import engine, get_db
 from sql_app import sql_main
 import requests
-from pydantic import BaseModel
-from celery import shared_task
 import redis
-
+from sqlalchemy.orm import Session
+import json
+from sql_app.schemas import JobCreate, JobResponse
+from sql_app import crud
 
 models.Base.metadata.create_all(bind=engine)
 redis_client = redis.Redis(host='redis', port=6379)
@@ -15,11 +16,6 @@ app = FastAPI()
 app.include_router(sql_main.router, prefix="/api/v1")
 
 
-class CityIDRequest(BaseModel):
-    city_ids: list[str]
-    category: str = None
-    query: str = None
-    num_posts: int = 10
 
 
 @app.get("/crawler-status")
@@ -43,14 +39,30 @@ def check_crawler_status():
 
 
 @app.post("/send_job/")
-async def send_job(request: CityIDRequest = Body(...)):
+async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
+    # Create job in the database
+    db_job = crud.create_job(db, job_request)
+    
+    # Convert the Job instance to JSON
+    job_json = json.dumps({
+        "id": db_job.id,
+        "city_ids": db_job.city_ids,
+        "category": db_job.category,
+        "query": db_job.query,
+        "num_posts": db_job.num_posts
+    })
+    
     # Push job to Redis queue
-    redis_client.lpush('jobs_queue', request.json())
-    return {"message": "Job sent to the queue", "data": request.dict()}
+    redis_client.lpush('jobs_queue', job_json)
+    
+    return {"message": "Job sent to the queue", "data": job_json}
+
+
 
 @app.get("/queue_instances")
 async def get_queue_instances():
     # Retrieve all elements in the queue
     queue_length = redis_client.llen('jobs_queue')
-    instances = [redis_client.lindex('jobs_queue', i) for i in range(queue_length)]
+    instances = [json.loads(redis_client.lindex('jobs_queue', i)) for i in range(queue_length)]
+    
     return {"instances_in_queue": instances}
