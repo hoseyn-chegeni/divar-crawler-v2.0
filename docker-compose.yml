@@ -38,7 +38,7 @@ services:
       context: ./jobs
       dockerfile: Dockerfile
     container_name: celery_worker
-    command: celery -A sql_app.sql_main.celery worker --loglevel=info
+    command: celery -A CELERY worker --loglevel=info
     networks:
       - divar_network
 

@@ -6,7 +6,7 @@ import requests
 def check_crawler_status_task():
     try:
         # Replace with the actual URL of your FastAPI server
-        fastapi_url = "http://fastapi_service:8000/crawler-status"
+        fastapi_url = "http://jobs_service:8000/crawler-status"
         
         response = requests.get(fastapi_url)
         
