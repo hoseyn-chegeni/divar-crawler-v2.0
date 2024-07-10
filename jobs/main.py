@@ -68,3 +68,10 @@ async def get_queue_instances():
     ]
 
     return {"instances_in_queue": instances}
+
+@app.get("/job_status/{job_id}", response_model=str)
+async def get_job_status(job_id: int, db: Session = Depends(get_db)):
+    db_job = crud.get_job(db, job_id)
+    if db_job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return db_job.get_status()

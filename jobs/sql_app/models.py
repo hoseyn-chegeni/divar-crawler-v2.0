@@ -22,3 +22,7 @@ class Job(Base):
     query = Column(String, index=True, nullable=True)
     num_posts = Column(Integer, default=10)
     status = Column(Enum(JobStatus), default=JobStatus.in_queue, nullable=False)
+
+    
+    def get_status(self):
+        return self.status
