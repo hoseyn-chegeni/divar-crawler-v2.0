@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-
+from sql_app.models import JobStatus
 
 class JobBase(BaseModel):
     city_ids: List[str]
@@ -15,6 +15,7 @@ class JobCreate(JobBase):
 
 class JobResponse(JobBase):
     id: int
+    status: JobStatus = JobStatus.in_queue
 
     class Config:
         orm_mode = True

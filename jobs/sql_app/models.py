@@ -1,7 +1,16 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum
 from .database import Base
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.dialects.sqlite import JSON
+import enum
+
+
+
+class JobStatus(str, enum.Enum):
+    in_queue = "in queue"
+    in_progress = "in progress"
+    completed = "completed"
+    failed = "failed"
 
 
 class Job(Base):
@@ -12,3 +21,4 @@ class Job(Base):
     category = Column(String, index=True, nullable=True)
     query = Column(String, index=True, nullable=True)
     num_posts = Column(Integer, default=10)
+    status = Column(Enum(JobStatus), default=JobStatus.in_queue, nullable=False)

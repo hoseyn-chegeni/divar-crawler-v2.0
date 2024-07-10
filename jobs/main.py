@@ -48,6 +48,8 @@ async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get
             "category": db_job.category,
             "query": db_job.query,
             "num_posts": db_job.num_posts,
+            "status": db_job.status,
+
         }
     )
 
