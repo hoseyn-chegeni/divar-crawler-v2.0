@@ -10,3 +10,4 @@ class Post(Base):
     token = Column(String, unique=True, index=True)
     city = Column(String, index=True)
     district = Column(String, index=True)
+    url = Column(String, index=True)

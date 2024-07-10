@@ -23,7 +23,6 @@ class CityIDRequest(BaseModel):
 
 is_busy = False
 
-
 @router.post("/fetch-data", response_model=List[Post])
 def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     fastapi_update_status_url = "http://jobs_service:8000/update_job_status/"
@@ -97,6 +96,7 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
                         district=post_dict["action"]["payload"]["web_info"][
                             "district_persian"
                         ],
+                        url=f'https://divar.ir/v/{post_dict["action"]["payload"]["token"]}'
                     )
                     saved_post = create_post(db=db, post=post)
                     saved_posts.append(saved_post)
@@ -111,6 +111,7 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
         is_busy = False
 
     return all_saved_posts
+
 
 
 @router.get("/status")
