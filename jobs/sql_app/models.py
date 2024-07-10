@@ -8,7 +8,7 @@ import enum
 
 class JobStatus(str, enum.Enum):
     in_queue = "in queue"
-    in_progress = "in progress"
+    in_progress = "in_progress"
     completed = "completed"
     failed = "failed"
 
@@ -23,6 +23,6 @@ class Job(Base):
     num_posts = Column(Integer, default=10)
     status = Column(Enum(JobStatus), default=JobStatus.in_queue, nullable=False)
 
-    
+
     def get_status(self):
         return self.status

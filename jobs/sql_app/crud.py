@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sql_app.models import Job
-from sql_app.schemas import JobCreate
+from sql_app.schemas import JobCreate, JobStatus
 
 
 def get_job(db: Session, job_id: int):
@@ -17,3 +17,11 @@ def create_job(db: Session, job: JobCreate):
     db.commit()
     db.refresh(db_job)
     return db_job
+
+def update_job_status(db: Session, job_id: int, status: JobStatus):
+    job = get_job(db, job_id)
+    if job:
+        job.status = status
+        db.commit()
+        db.refresh(job)
+    return job

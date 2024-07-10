@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import json
 from sql_app.schemas import JobCreate
 from sql_app import crud
+from pydantic import BaseModel
 
 models.Base.metadata.create_all(bind=engine)
 redis_client = redis.Redis(host="redis", port=6379)
@@ -75,3 +76,18 @@ async def get_job_status(job_id: int, db: Session = Depends(get_db)):
     if db_job is None:
         raise HTTPException(status_code=404, detail="Job not found")
     return db_job.get_status()
+
+
+class JobStatusUpdate(BaseModel):
+    job_id: int
+    status: models.JobStatus
+
+@app.put("/update_job_status/")
+async def update_job_status(status_update: JobStatusUpdate, db: Session = Depends(get_db)):
+    job = crud.get_job(db, job_id=status_update.job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    job.status = status_update.status
+    db.commit()
+    db.refresh(job)
+    return {"message": "Job status updated", "job": job}
