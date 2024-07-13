@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: fastapi_user
+      POSTGRES_PASSWORD: fastapi_password
+      POSTGRES_DB: job_service_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fastapi_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - divar_network
+
+
   jobs:
     build:
       context: ./jobs
@@ -8,11 +29,17 @@ services:
     container_name: jobs_service
     ports:
       - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_started
+      celery_worker:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://fastapi_user:fastapi_password@db/job_service_db
     networks:
       - divar_network
-    depends_on:
-      - redis
-      - celery_worker
 
   crawler:
     build:
@@ -39,9 +66,18 @@ services:
       dockerfile: Dockerfile
     container_name: celery_worker
     command: celery -A CELERY worker --loglevel=info
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     networks:
       - divar_network
 
 networks:
   divar_network:
     driver: bridge
+
+
+volumes:
+  postgres_data:

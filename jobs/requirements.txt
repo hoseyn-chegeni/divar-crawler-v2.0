@@ -5,3 +5,4 @@ requests
 SQLAlchemy
 celery[redis]
 redis
+psycopg2-binary
