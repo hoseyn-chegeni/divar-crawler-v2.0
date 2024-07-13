@@ -18,5 +18,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 10):
 
 def delete_posts(db: Session, posts: List[models.Post]):
     post_ids = [post.id for post in posts]
-    db.query(models.Post).filter(models.Post.id.in_(post_ids)).delete(synchronize_session='fetch')
+    db.query(models.Post).filter(models.Post.id.in_(post_ids)).delete(
+        synchronize_session="fetch"
+    )
     db.commit()

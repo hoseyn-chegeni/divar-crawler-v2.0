@@ -10,6 +10,7 @@ from sql_app.schemas import JobCreate
 from sql_app import crud
 from pydantic import BaseModel
 from city_mapping import city_name_to_id
+
 models.Base.metadata.create_all(bind=engine)
 redis_client = redis.Redis(host="redis", port=6379)
 
@@ -17,7 +18,7 @@ app = FastAPI()
 app.include_router(sql_main.router, prefix="/api/v1")
 
 
-@app.get("/crawler-status",include_in_schema=False)
+@app.get("/crawler-status", include_in_schema=False)
 def check_crawler_status():
     crawler_url = "http://crawler_service:8001/api/v1/status"
     try:
@@ -34,14 +35,16 @@ def check_crawler_status():
         raise HTTPException(
             status_code=500, detail="Crawler service is not available"
         ) from e
-   
+
 
 @app.post("/send_job/")
 async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
     try:
         city_ids = [city_name_to_id[city] for city in job_request.city_names]
     except KeyError as e:
-        raise HTTPException(status_code=400, detail=f"City name {e.args[0]} is not recognized")
+        raise HTTPException(
+            status_code=400, detail=f"City name {e.args[0]} is not recognized"
+        )
 
     db_job = crud.create_job(db, job_request, city_ids)
 
@@ -60,6 +63,7 @@ async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get
 
     return {"message": "Job sent to the queue", "data": job_json}
 
+
 @app.get("/queue_instances")
 async def get_queue_instances():
     # Retrieve all elements in the queue
@@ -69,6 +73,7 @@ async def get_queue_instances():
     ]
 
     return {"instances_in_queue": instances}
+
 
 @app.get("/job_status/{job_id}", response_model=str)
 async def get_job_status(job_id: int, db: Session = Depends(get_db)):
@@ -82,8 +87,11 @@ class JobStatusUpdate(BaseModel):
     job_id: int
     status: models.JobStatus
 
+
 @app.put("/update_job_status/", include_in_schema=False)
-async def update_job_status(status_update: JobStatusUpdate, db: Session = Depends(get_db)):
+async def update_job_status(
+    status_update: JobStatusUpdate, db: Session = Depends(get_db)
+):
     job = crud.get_job(db, job_id=status_update.job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")

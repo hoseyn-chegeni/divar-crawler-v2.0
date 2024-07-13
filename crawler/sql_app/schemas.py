@@ -6,7 +6,7 @@ class PostBase(BaseModel):
     token: str
     city: str
     district: str
-    url: str 
+    url: str
 
 
 class PostCreate(PostBase):

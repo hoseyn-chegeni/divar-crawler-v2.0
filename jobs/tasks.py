@@ -4,7 +4,6 @@ import json
 from main import redis_client
 
 
-
 @shared_task
 def check_crawler_status_task():
     try:
@@ -21,16 +20,16 @@ def check_crawler_status_task():
                 if job_data:
                     job_request = json.loads(job_data)
                     update_status_response = requests.put(
-                            fastapi_update_status_url,
-                            json={"job_id": job_request["id"], "status": "in_progress"}
-                        )
+                        fastapi_update_status_url,
+                        json={"job_id": job_request["id"], "status": "in_progress"},
+                    )
 
                     response = requests.post(fastapi_fetch_data_url, json=job_request)
                     if response.status_code == 200:
                         # Update job status to completed
                         update_status_response = requests.put(
                             fastapi_update_status_url,
-                            json={"job_id": job_request["id"], "status": "completed"}
+                            json={"job_id": job_request["id"], "status": "completed"},
                         )
 
                         if update_status_response.status_code != 200:
@@ -39,7 +38,7 @@ def check_crawler_status_task():
                         # Update job status to failed
                         update_status_response = requests.put(
                             fastapi_update_status_url,
-                            json={"job_id": job_request["id"], "status": "failed"}
+                            json={"job_id": job_request["id"], "status": "failed"},
                         )
                         if update_status_response.status_code != 200:
                             print("Failed to update job status to failed")

@@ -6,7 +6,6 @@ from typing import List
 from sql_app.schemas import JobCreate, JobResponse, PostCreate, Post
 
 
-
 router = APIRouter()
 
 
@@ -34,6 +33,7 @@ def save_posts(posts: List[PostCreate], db: Session = Depends(get_db)):
         saved_post = crud.create_post(db=db, post=post)
         saved_posts.append(saved_post)
     return saved_posts
+
 
 @router.get("/posts/", response_model=List[Post])
 def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
