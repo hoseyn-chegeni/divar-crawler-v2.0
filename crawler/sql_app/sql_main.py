@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 import requests
 from datetime import datetime, timedelta
-from .crud import get_posts, create_post
+from .crud import get_posts, create_post, delete_posts
 from .schemas import Post, PostCreate
 from .database import get_db
 from typing import List, Optional
@@ -19,7 +19,6 @@ class CityIDRequest(BaseModel):
     category: Optional[str] = None
     query: Optional[str] = None
     num_posts: Optional[int] = 10
-
 
 is_busy = False
 
@@ -131,13 +130,12 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
                 status_code=response.status_code, detail="Failed to send data to job service"
             )
 
+        delete_posts(db, all_saved_posts)
+
     finally:
         is_busy = False
 
     return all_saved_posts
-
-
-
 @router.get("/status")
 def get_status():
     return {"status": "busy" if is_busy else "free"}
