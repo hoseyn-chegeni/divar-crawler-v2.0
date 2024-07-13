@@ -22,7 +22,7 @@ class CityIDRequest(BaseModel):
 
 is_busy = False
 
-@router.post("/fetch-data", response_model=List[Post])
+@router.post("/fetch-data", response_model=List[Post] ,include_in_schema=False)
 def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     fastapi_update_status_url = "http://jobs_service:8000/update_job_status/"
     fastapi_save_posts_url = "http://jobs_service:8000/api/v1/save-posts/"

@@ -10,7 +10,7 @@ from sql_app.schemas import JobCreate, JobResponse, PostCreate, Post
 router = APIRouter()
 
 
-@router.post("/jobs/", response_model=JobResponse)
+@router.post("/jobs/", response_model=JobResponse, include_in_schema=False)
 def create_job(job: JobCreate, db: Session = Depends(get_db)):
     return crud.create_job(db, job)
 
@@ -20,15 +20,7 @@ def read_jobs(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_jobs(db, skip=skip, limit=limit)
 
 
-@router.get("/jobs/{job_id}", response_model=JobResponse)
-def read_job(job_id: int, db: Session = Depends(get_db)):
-    db_job = crud.get_job(db, job_id)
-    if db_job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return db_job
-
-
-@router.post("/save-posts/", response_model=List[Post])
+@router.post("/save-posts/", response_model=List[Post], include_in_schema=False)
 def save_posts(posts: List[PostCreate], db: Session = Depends(get_db)):
     saved_posts = []
     for post_data in posts:

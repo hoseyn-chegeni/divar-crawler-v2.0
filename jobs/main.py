@@ -17,7 +17,7 @@ app = FastAPI()
 app.include_router(sql_main.router, prefix="/api/v1")
 
 
-@app.get("/crawler-status")
+@app.get("/crawler-status",include_in_schema=False)
 def check_crawler_status():
     crawler_url = "http://crawler_service:8001/api/v1/status"
     try:
@@ -82,7 +82,7 @@ class JobStatusUpdate(BaseModel):
     job_id: int
     status: models.JobStatus
 
-@app.put("/update_job_status/")
+@app.put("/update_job_status/", include_in_schema=False)
 async def update_job_status(status_update: JobStatusUpdate, db: Session = Depends(get_db)):
     job = crud.get_job(db, job_id=status_update.job_id)
     if not job:
