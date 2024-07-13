@@ -9,7 +9,7 @@ import json
 from sql_app.schemas import JobCreate
 from sql_app import crud
 from pydantic import BaseModel
-
+from city_mapping import city_name_to_id
 models.Base.metadata.create_all(bind=engine)
 redis_client = redis.Redis(host="redis", port=6379)
 
@@ -34,31 +34,31 @@ def check_crawler_status():
         raise HTTPException(
             status_code=500, detail="Crawler service is not available"
         ) from e
-
+   
 
 @app.post("/send_job/")
 async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
-    # Create job in the database
-    db_job = crud.create_job(db, job_request)
+    try:
+        city_ids = [city_name_to_id[city] for city in job_request.city_names]
+    except KeyError as e:
+        raise HTTPException(status_code=400, detail=f"City name {e.args[0]} is not recognized")
 
-    # Convert the Job instance to JSON
+    db_job = crud.create_job(db, job_request, city_ids)
+
     job_json = json.dumps(
         {
             "id": db_job.id,
-            "city_ids": db_job.city_ids,
+            "city_ids": city_ids,
             "category": db_job.category,
             "query": db_job.query,
             "num_posts": db_job.num_posts,
             "status": db_job.status,
-
         }
     )
 
-    # Push job to Redis queue
     redis_client.lpush("jobs_queue", job_json)
 
     return {"message": "Job sent to the queue", "data": job_json}
-
 
 @app.get("/queue_instances")
 async def get_queue_instances():

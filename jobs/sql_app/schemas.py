@@ -1,25 +1,26 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from sql_app.models import JobStatus
-
 class JobBase(BaseModel):
     city_ids: List[str]
     category: Optional[str] = None
     query: Optional[str] = None
     num_posts: int = 10
 
-
-class JobCreate(JobBase):
-    pass
-
+class JobCreate(BaseModel):
+    city_names: List[str]
+    category: Optional[str] = None
+    query: Optional[str] = None
+    num_posts: int = 10
 
 class JobResponse(JobBase):
     id: int
     status: JobStatus = JobStatus.in_queue
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
+        
 
 class PostBase(BaseModel):
     title: str
