@@ -26,15 +26,13 @@ class PostBase(BaseModel):
     token: str
     city: str
     district: str
-    url: str 
-
+    url: str
 
 class PostCreate(PostBase):
     pass
-
 
 class Post(PostBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

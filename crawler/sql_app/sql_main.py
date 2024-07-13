@@ -26,6 +26,7 @@ is_busy = False
 @router.post("/fetch-data", response_model=List[Post])
 def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     fastapi_update_status_url = "http://jobs_service:8000/update_job_status/"
+    fastapi_save_posts_url = "http://jobs_service:8000/api/v1/save-posts/"
     global is_busy
     is_busy = True
     try:
@@ -107,6 +108,29 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
 
             page += 1
             layer_page += 1
+
+        # Send the data to job_service
+        post_data = [
+            {
+                "title": post.title,
+                "token": post.token,
+                "city": post.city,
+                "district": post.district,
+                "url": post.url
+            }
+            for post in all_saved_posts
+        ]
+
+        response = requests.post(fastapi_save_posts_url, json=post_data)
+        if response.status_code != 200:
+            requests.put(
+                fastapi_update_status_url,
+                json={"job_id": request.id, "status": "failed"}
+            )
+            raise HTTPException(
+                status_code=response.status_code, detail="Failed to send data to job service"
+            )
+
     finally:
         is_busy = False
 
