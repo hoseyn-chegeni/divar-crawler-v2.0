@@ -3,6 +3,7 @@ from typing import List, Optional
 from sql_app.models import JobStatus
 from enum import Enum
 
+
 class JobBase(BaseModel):
     city_ids: List[str]
     category: Optional[str] = None
@@ -42,7 +43,6 @@ class Post(PostBase):
 
     class Config:
         from_attributes = True
-
 
 
 class City(Enum):

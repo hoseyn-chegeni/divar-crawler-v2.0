@@ -40,7 +40,10 @@ def check_crawler_status():
 @app.post("/send_job/")
 async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
     try:
-        city_ids = [City[city.replace(" ", "_").upper()].value for city in job_request.city_names]
+        city_ids = [
+            City[city.replace(" ", "_").upper()].value
+            for city in job_request.city_names
+        ]
     except KeyError as e:
         raise HTTPException(
             status_code=400, detail=f"City name {e.args[0]} is not recognized"
