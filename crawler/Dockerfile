@@ -17,4 +17,4 @@ COPY . /app
 EXPOSE 8001
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8001 --reload & sleep 10 && celery -A CELERY beat --loglevel=info"]

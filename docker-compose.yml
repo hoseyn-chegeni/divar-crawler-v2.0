@@ -32,8 +32,6 @@ services:
     depends_on:
       redis:
         condition: service_started
-      celery_worker:
-        condition: service_started
       db:
         condition: service_healthy
     environment:
@@ -62,7 +60,7 @@ services:
 
   celery_worker:
     build:
-      context: ./jobs
+      context: ./crawler
       dockerfile: Dockerfile
     container_name: celery_worker
     command: celery -A CELERY worker --loglevel=info

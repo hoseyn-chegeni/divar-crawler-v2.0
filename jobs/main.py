@@ -37,34 +37,34 @@ def check_crawler_status():
         ) from e
 
 
-@app.post("/send_job/")
-async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
-    try:
-        city_ids = [
-            City[city.replace(" ", "_").upper()].value
-            for city in job_request.city_names
-        ]
-    except KeyError as e:
-        raise HTTPException(
-            status_code=400, detail=f"City name {e.args[0]} is not recognized"
-        )
+# @app.post("/send_job/")
+# async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
+#     try:
+#         city_ids = [
+#             City[city.replace(" ", "_").upper()].value
+#             for city in job_request.city_names
+#         ]
+#     except KeyError as e:
+#         raise HTTPException(
+#             status_code=400, detail=f"City name {e.args[0]} is not recognized"
+#         )
 
-    db_job = crud.create_job(db, job_request, city_ids)
+#     db_job = crud.create_job(db, job_request, city_ids)
 
-    job_json = json.dumps(
-        {
-            "id": db_job.id,
-            "city_ids": city_ids,
-            "category": db_job.category,
-            "query": db_job.query,
-            "num_posts": db_job.num_posts,
-            "status": db_job.status,
-        }
-    )
+#     job_json = json.dumps(
+#         {
+#             "id": db_job.id,
+#             "city_ids": city_ids,
+#             "category": db_job.category,
+#             "query": db_job.query,
+#             "num_posts": db_job.num_posts,
+#             "status": db_job.status,
+#         }
+#     )
 
-    redis_client.lpush("jobs_queue", job_json)
+#     redis_client.lpush("jobs_queue", job_json)
 
-    return {"message": "Job sent to the queue", "data": job_json}
+#     return {"message": "Job sent to the queue", "data": job_json}
 
 
 @app.get("/queue_instances")

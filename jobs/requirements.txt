@@ -3,6 +3,5 @@ uvicorn[standard]
 pydantic
 requests
 SQLAlchemy
-celery[redis]
 redis
 psycopg2-binary
