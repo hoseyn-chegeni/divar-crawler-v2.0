@@ -17,7 +17,6 @@ app = FastAPI()
 app.include_router(sql_main.router, prefix="/api/v1")
 
 
-
 @app.post("/save_job/")
 async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get_db)):
     try:
@@ -53,7 +52,7 @@ async def get_queue_instances():
     return {"instances_in_queue": instances}
 
 
-@app.get("/send_job")
+@app.get("/send_job", include_in_schema=False)
 async def send_job():
     try:
         job_json = redis_client.rpop("jobs_queue")
