@@ -5,7 +5,7 @@ from sql_app import sql_main
 import redis
 from sqlalchemy.orm import Session
 import json
-from sql_app.schemas import JobCreate, City, crawler_status, CrawlerStatus
+from sql_app.schemas import JobCreate,JobStatus, City, crawler_status, CrawlerStatus
 from sql_app import crud
 
 
@@ -52,16 +52,26 @@ async def get_queue_instances():
 
 
 @app.get("/send_job", include_in_schema=False)
-async def send_job():
+async def send_job(db: Session = Depends(get_db)):
     try:
         job_json = redis_client.rpop("jobs_queue")
         if not job_json:
             raise HTTPException(status_code=404, detail="No jobs in the queue")
-        job = json.loads(job_json)
-        return job
+        
+        job_data = json.loads(job_json)
+        job_id = job_data["id"]
+        
+        job = db.query(models.Job).filter(models.Job.id == job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found in the database")
+
+        job.status = JobStatus.in_progress
+        db.commit()
+        db.refresh(job)
+
+        return job_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/crawler-status/", include_in_schema=False)
 def update_crawler_status(status: CrawlerStatus):
@@ -72,3 +82,10 @@ def update_crawler_status(status: CrawlerStatus):
 @app.get("/crawler-status/")
 def get_crawler_status():
     return crawler_status
+
+@app.get("/status/{job_id}", response_model=JobStatus)
+async def get_status(job_id: int, db: Session = Depends(get_db)):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job.get_status()
