@@ -1,23 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from . import crud
-from .database import get_db
+from sql_app import crud
+from sql_app.database import get_db
 from typing import List
-from sql_app.schemas import JobCreate, JobResponse, PostCreate, Post
+from sql_app.schemas import PostCreate, Post
 
 
 router = APIRouter()
-
-
-@router.post("/jobs/", response_model=JobResponse, include_in_schema=False)
-def create_job(job: JobCreate, db: Session = Depends(get_db)):
-    return crud.create_job(db, job)
-
-
-@router.get("/jobs/", response_model=List[JobResponse])
-def read_jobs(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_jobs(db, skip=skip, limit=limit)
-
 
 @router.post("/save-posts/", response_model=List[Post], include_in_schema=False)
 def save_posts(posts: List[PostCreate], db: Session = Depends(get_db)):

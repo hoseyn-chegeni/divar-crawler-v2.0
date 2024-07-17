@@ -6,7 +6,7 @@ celery_app = Celery("worker")
 
 @celery_app.task
 def fetch_status_and_process_job():
-    status_url = "http://jobs_service:8000/crawler-status/"
+    status_url = "http://jobs_service:8000/crawler/status/"
     send_job_url = "http://jobs_service:8000/send_job"
     fetch_data_url = "http://crawler_service:8001/fetch-data"
 

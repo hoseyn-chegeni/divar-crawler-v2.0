@@ -27,14 +27,14 @@ class CityIDRequest(BaseModel):
 
 is_busy = False
 def update_job_status(job_id: int, status: str, message: Optional[str] = None):
-    url = f"http://jobs_service:8000/update-job-status/{job_id}"
+    url = f"http://jobs_service:8000/status/update-job-status/{job_id}"
     data = {"status": status, "message": message}
     response = requests.put(url, json=data)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to update job status")
 
 def fetch_data_task(request: CityIDRequest, db: Session):
-    fastapi_save_posts_url = "http://jobs_service:8000/api/v1/save-posts/"
+    fastapi_save_posts_url = "http://jobs_service:8000/save-posts/"
     global is_busy
     is_busy = True
     job_id = request.id
