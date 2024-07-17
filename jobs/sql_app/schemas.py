@@ -22,9 +22,12 @@ class JobResponse(JobBase):
     id: int
     status: JobStatus = JobStatus.in_queue
 
+class UpdateJobStatusRequest(BaseModel):
+    status: JobStatus
+    message: Optional[str] = None
+
     class Config:
         from_attributes = True
-
 
 class PostBase(BaseModel):
     title: str

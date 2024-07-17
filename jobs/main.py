@@ -5,7 +5,7 @@ from sql_app import sql_main
 import redis
 from sqlalchemy.orm import Session
 import json
-from sql_app.schemas import JobCreate,JobStatus, City, crawler_status, CrawlerStatus
+from sql_app.schemas import JobBase,JobCreate,JobStatus, City, crawler_status, CrawlerStatus, UpdateJobStatusRequest
 from sql_app import crud
 
 
@@ -89,3 +89,17 @@ async def get_status(job_id: int, db: Session = Depends(get_db)):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job.get_status()
+
+
+
+@app.put("/update-job-status/{job_id}", response_model=JobBase)
+async def update_job_status(job_id: int, request: UpdateJobStatusRequest, db: Session = Depends(get_db)):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    job.status = request.status
+    db.commit()
+    db.refresh(job)
+    
+    return job

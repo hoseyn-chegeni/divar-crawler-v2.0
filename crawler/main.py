@@ -33,7 +33,19 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     fastapi_save_posts_url = "http://jobs_service:8000/api/v1/save-posts/"
     global is_busy
     is_busy = True
+    job_id = request.id
+
+    def update_job_status(job_id: int, status: str, message: Optional[str] = None):
+        url = f"http://jobs_service:8000/update-job-status/{job_id}"
+        data = {"status": status, "message": message}
+        response = requests.put(url, json=data)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to update job status")
+
     try:
+        # Set job status to in_progress
+        update_job_status(job_id, "in_progress")
+
         url = "https://api.divar.ir/v8/postlist/w/search"
         headers = {"Content-Type": "application/json"}
 
@@ -124,11 +136,18 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
         response = requests.post(fastapi_save_posts_url, json=post_data)
         if response.status_code != 200:
             raise HTTPException(
-                status_code=response.status_code,
-                detail="Failed to send data to job service",
+                status_code=response.status_code, detail="Failed to send data to job service",
             )
 
         delete_posts(db, all_saved_posts)
+
+        # Update job status to completed
+        update_job_status(job_id, "completed")
+
+    except Exception as e:
+        # Update job status to failed in case of an error
+        update_job_status(job_id, "failed", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
     finally:
         is_busy = False
