@@ -1,8 +1,13 @@
 from fastapi import HTTPException, Depends, APIRouter
-from sql_app import models
-from sql_app.database import get_db
+from backend.app import models
+from backend.app.core.db import get_db
 from sqlalchemy.orm import Session
-from sql_app.schemas import JobBase, JobStatus, crawler_status, UpdateJobStatusRequest
+from backend.app.schemas import (
+    JobBase,
+    JobStatus,
+    crawler_status,
+    UpdateJobStatusRequest,
+)
 
 
 router = APIRouter()

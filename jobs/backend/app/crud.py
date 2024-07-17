@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from sql_app.models import Job, Post
-from sql_app.schemas import JobCreate, JobStatus, PostCreate
+from backend.app.models import Job, Post
+from backend.app.schemas import JobCreate, JobStatus, PostCreate
 from typing import List, Optional
 
 

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from sql_app import crud
-from sql_app.database import get_db
+from backend.app import crud
+from backend.app.core.db import get_db
 from typing import List
-from sql_app.schemas import JobCreate, JobResponse, City, JobStatus
+from backend.app.schemas import JobCreate, JobResponse, City, JobStatus
 import json
-from app.queue import redis_client
-from sql_app import models
+from backend.app.api.routes.queue import redis_client
+from backend.app import models
 
 router = APIRouter()
 

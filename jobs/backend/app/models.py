@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Enum
-from .database import Base
+from backend.app.core.db import Base
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.dialects.sqlite import JSON
 import enum

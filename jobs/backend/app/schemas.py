@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict
-from sql_app.models import JobStatus
+from backend.app.models import JobStatus
 from enum import Enum
 
 

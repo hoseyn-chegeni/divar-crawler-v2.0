@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from sql_app import models
-from sql_app.database import engine
-from app import jobs, posts, status, crawler, queue
+from backend.app import models
+from backend.app.core.db import engine
+from backend.app.api.routes import jobs, posts, status, crawler, queue
 
 
 models.Base.metadata.create_all(bind=engine)

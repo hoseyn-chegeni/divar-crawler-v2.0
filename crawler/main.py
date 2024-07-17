@@ -41,7 +41,8 @@ def update_job_status(job_id: int, status: str, message: Optional[str] = None):
         raise HTTPException(
             status_code=response.status_code, detail="Failed to update job status"
         )
-    
+
+
 def fetch_data_task(request: CityIDRequest, db: Session):
     global active_tasks
     with active_tasks_lock:
@@ -165,6 +166,7 @@ def fetch_data(
 ):
     background_tasks.add_task(executor.submit, fetch_data_task, request, db)
     return {"message": "Task started"}
+
 
 @app.get("/status", include_in_schema=False)
 def get_status():
