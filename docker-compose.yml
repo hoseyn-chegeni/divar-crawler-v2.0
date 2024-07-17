@@ -9,8 +9,8 @@ services:
       POSTGRES_USER: fastapi_user
       POSTGRES_PASSWORD: fastapi_password
       POSTGRES_DB: job_service_db
-    # volumes:
-    #   - postgres_data:/var/lib/postgresql/data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5433"
     healthcheck:
@@ -77,5 +77,5 @@ networks:
     driver: bridge
 
 
-# volumes:
-#   postgres_data:
+volumes:
+  postgres_data:
