@@ -156,7 +156,7 @@ def fetch_data_task(request: CityIDRequest, db: Session):
         is_busy = False
 
 
-@app.post("/fetch-data", response_model=TaskResponse)
+@app.post("/fetch-data", response_model=TaskResponse, include_in_schema=False)
 def fetch_data(
     request: CityIDRequest,
     background_tasks: BackgroundTasks,
@@ -166,6 +166,6 @@ def fetch_data(
     return {"message": "Task started"}
 
 
-@app.get("/status")
+@app.get("/status", include_in_schema=False)
 def get_status():
     return {"status": "busy" if is_busy else "free"}
