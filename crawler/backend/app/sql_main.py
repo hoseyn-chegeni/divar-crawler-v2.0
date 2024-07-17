@@ -1,12 +1,9 @@
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, APIRouter
 from sqlalchemy.orm import Session
-import requests
-from datetime import datetime, timedelta
 from .crud import get_posts, create_post, delete_posts
-from .schemas import Post, PostCreate
-from .database import get_db
-from typing import List, Optional
-from pydantic import BaseModel
+from .schemas import Post
+from backend.app.core.db import get_db
+from typing import List
 
 
 # Initialize the FastAPI router

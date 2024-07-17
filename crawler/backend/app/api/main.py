@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
-from sql_app import models
-from sql_app.database import engine, get_db
-from sql_app import sql_main
+from backend.app import models
+from backend.app.core.db import get_db, engine
+from backend.app import sql_main
 from sqlalchemy.orm import Session
 import requests
 from datetime import datetime, timedelta
-from sql_app.crud import create_post, delete_posts
-from sql_app.schemas import PostCreate, Post, TaskResponse
+from backend.app.crud import create_post, delete_posts
+from backend.app.schemas import PostCreate, Post, TaskResponse
 from typing import List, Optional
 from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor

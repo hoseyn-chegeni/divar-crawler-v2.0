@@ -63,7 +63,7 @@ services:
       context: ./crawler
       dockerfile: Dockerfile
     container_name: celery_worker
-    command: celery -A CELERY worker --loglevel=info
+    command: celery -A backend.app.CELERY worker --loglevel=info
     depends_on:
       redis:
         condition: service_started
