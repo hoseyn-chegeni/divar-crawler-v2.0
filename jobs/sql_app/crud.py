@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sql_app.models import Job, Post
 from sql_app.schemas import JobCreate, JobStatus, PostCreate
-from typing import List
+from typing import List, Optional
 
 
 def get_job(db: Session, job_id: int):
@@ -43,5 +43,21 @@ def create_post(db: Session, post: PostCreate):
     return db_post
 
 
-def get_posts(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Post).offset(skip).limit(limit).all()
+def get_posts(
+    db: Session,
+    skip: int = 0,
+    limit: int = 10,
+    title: Optional[str] = None,
+    city: Optional[str] = None,
+    district: Optional[str] = None,
+):
+    query = db.query(Post)
+
+    if title:
+        query = query.filter(Post.title.ilike(f"%{title}%"))
+    if city:
+        query = query.filter(Post.city.ilike(f"%{city}%"))
+    if district:
+        query = query.filter(Post.district.ilike(f"%{district}%"))
+
+    return query.offset(skip).limit(limit).all()

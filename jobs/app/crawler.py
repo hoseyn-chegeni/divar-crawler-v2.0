@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from sql_app.schemas import crawler_status,CrawlerStatus
+from sql_app.schemas import crawler_status, CrawlerStatus
 
 router = APIRouter()
 

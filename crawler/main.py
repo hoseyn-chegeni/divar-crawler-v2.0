@@ -26,12 +26,17 @@ class CityIDRequest(BaseModel):
 
 
 is_busy = False
+
+
 def update_job_status(job_id: int, status: str, message: Optional[str] = None):
     url = f"http://jobs_service:8000/status/update-job-status/{job_id}"
     data = {"status": status, "message": message}
     response = requests.put(url, json=data)
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Failed to update job status")
+        raise HTTPException(
+            status_code=response.status_code, detail="Failed to update job status"
+        )
+
 
 def fetch_data_task(request: CityIDRequest, db: Session):
     fastapi_save_posts_url = "http://jobs_service:8000/save-posts/"
@@ -133,7 +138,8 @@ def fetch_data_task(request: CityIDRequest, db: Session):
         response = requests.post(fastapi_save_posts_url, json=post_data)
         if response.status_code != 200:
             raise HTTPException(
-                status_code=response.status_code, detail="Failed to send data to job service",
+                status_code=response.status_code,
+                detail="Failed to send data to job service",
             )
 
         delete_posts(db, all_saved_posts)
@@ -149,8 +155,13 @@ def fetch_data_task(request: CityIDRequest, db: Session):
     finally:
         is_busy = False
 
+
 @app.post("/fetch-data", response_model=TaskResponse)
-def fetch_data(request: CityIDRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def fetch_data(
+    request: CityIDRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     background_tasks.add_task(fetch_data_task, request, db)
     return {"message": "Task started"}
 

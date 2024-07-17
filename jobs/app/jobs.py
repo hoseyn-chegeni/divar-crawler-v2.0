@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends,HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from sql_app import crud
 from sql_app.database import get_db
@@ -19,8 +19,6 @@ def create_job(job: JobCreate, db: Session = Depends(get_db)):
 @router.get("/jobs/", response_model=List[JobResponse])
 def read_jobs(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_jobs(db, skip=skip, limit=limit)
-
-
 
 
 @router.post("/save_job/")
@@ -49,18 +47,16 @@ async def send_job(job_request: JobCreate = Body(...), db: Session = Depends(get
     return {"message": "Job sent to the queue", "data": job_json}
 
 
-
-
 @router.get("/send_job", include_in_schema=False)
 async def send_job(db: Session = Depends(get_db)):
     try:
         job_json = redis_client.rpop("jobs_queue")
         if not job_json:
             raise HTTPException(status_code=404, detail="No jobs in the queue")
-        
+
         job_data = json.loads(job_json)
         job_id = job_data["id"]
-        
+
         job = db.query(models.Job).filter(models.Job.id == job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="Job not found in the database")

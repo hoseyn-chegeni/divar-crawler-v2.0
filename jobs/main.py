@@ -14,13 +14,3 @@ app.include_router(posts.router, tags=["Posts"])
 app.include_router(status.router, prefix="/status", tags=["Status"])
 app.include_router(crawler.router, prefix="/crawler", tags=["Crawler"])
 app.include_router(queue.router, prefix="/queue", tags=["Queue"])
-
-
-
-
-
-
-
-
-
-

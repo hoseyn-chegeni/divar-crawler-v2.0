@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 import redis
 import json
+
 redis_client = redis.Redis(host="redis", port=6379)
 router = APIRouter()
-
 
 
 @router.get("/queue_instances")
