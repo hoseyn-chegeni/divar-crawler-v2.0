@@ -9,11 +9,13 @@ from sql_app.crud import create_post, delete_posts
 from sql_app.schemas import PostCreate, Post, TaskResponse
 from typing import List, Optional
 from pydantic import BaseModel
+from concurrent.futures import ThreadPoolExecutor
+
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
+executor = ThreadPoolExecutor(max_workers=4)
 app.include_router(sql_main.router, prefix="/api/v1")
 
 
@@ -40,12 +42,9 @@ def update_job_status(job_id: int, status: str, message: Optional[str] = None):
 
 def fetch_data_task(request: CityIDRequest, db: Session):
     fastapi_save_posts_url = "http://jobs_service:8000/save-posts/"
-    global is_busy
-    is_busy = True
     job_id = request.id
 
     try:
-        # Set job status to in_progress
         update_job_status(job_id, "in_progress")
 
         url = "https://api.divar.ir/v8/postlist/w/search"
@@ -85,7 +84,6 @@ def fetch_data_task(request: CityIDRequest, db: Session):
                 body["search_data"]["query"] = request.query
 
             response = requests.post(url, json=body, headers=headers)
-
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=response.status_code, detail="Failed to fetch data"
@@ -123,7 +121,6 @@ def fetch_data_task(request: CityIDRequest, db: Session):
             page += 1
             layer_page += 1
 
-        # Send the data to job_service
         post_data = [
             {
                 "title": post.title,
@@ -143,28 +140,20 @@ def fetch_data_task(request: CityIDRequest, db: Session):
             )
 
         delete_posts(db, all_saved_posts)
-
-        # Update job status to completed
         update_job_status(job_id, "completed")
 
     except Exception as e:
-        # Update job status to failed in case of an error
         update_job_status(job_id, "failed", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-    finally:
-        is_busy = False
-
-
-@app.post("/fetch-data", response_model=TaskResponse, include_in_schema=False)
+@app.post("/fetch-data", response_model=TaskResponse)
 def fetch_data(
     request: CityIDRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    background_tasks.add_task(fetch_data_task, request, db)
+    background_tasks.add_task(executor.submit, fetch_data_task, request, db)
     return {"message": "Task started"}
-
 
 @app.get("/status", include_in_schema=False)
 def get_status():
