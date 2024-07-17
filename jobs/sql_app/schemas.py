@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 from sql_app.models import JobStatus
 from enum import Enum
 
@@ -85,3 +85,10 @@ class City(Enum):
     BANDAR_MAHSHAR = "37"
     YASUJ = "38"
     BOJNURD = "39"
+
+
+class CrawlerStatus(BaseModel):
+    status: str
+
+
+crawler_status: Dict[str, str] = {"status": "unknown"}

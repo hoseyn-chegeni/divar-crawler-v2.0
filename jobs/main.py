@@ -2,14 +2,12 @@ from fastapi import FastAPI, HTTPException, Body, Depends
 from sql_app import models
 from sql_app.database import engine, get_db
 from sql_app import sql_main
-import requests
 import redis
 from sqlalchemy.orm import Session
 import json
-from sql_app.schemas import JobCreate, City
+from sql_app.schemas import JobCreate, City, crawler_status, CrawlerStatus
 from sql_app import crud
-from pydantic import BaseModel
-from typing import Dict
+
 
 models.Base.metadata.create_all(bind=engine)
 redis_client = redis.Redis(host="redis", port=6379)
@@ -65,17 +63,11 @@ async def send_job():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-
-class CrawlerStatus(BaseModel):
-    status: str
-
-crawler_status: Dict[str, str] = {"status": "unknown"}
-
-@app.post("/crawler-status/")
+@app.post("/crawler-status/", include_in_schema=False)
 def update_crawler_status(status: CrawlerStatus):
     crawler_status["status"] = status.status
     return {"message": "Status updated"}
+
 
 @app.get("/crawler-status/")
 def get_crawler_status():

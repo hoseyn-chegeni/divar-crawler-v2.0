@@ -4,7 +4,6 @@ from celery import Celery
 celery_app = Celery("worker")
 
 
-
 @celery_app.task
 def fetch_status_and_process_job():
     status_url = "http://jobs_service:8000/crawler-status/"
