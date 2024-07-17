@@ -10,12 +10,15 @@ from sql_app.schemas import PostCreate, Post, TaskResponse
 from typing import List, Optional
 from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor
-
+import threading
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 executor = ThreadPoolExecutor(max_workers=4)
+active_tasks_lock = threading.Lock()
+active_tasks = 0
+
 app.include_router(sql_main.router, prefix="/api/v1")
 
 
@@ -38,9 +41,12 @@ def update_job_status(job_id: int, status: str, message: Optional[str] = None):
         raise HTTPException(
             status_code=response.status_code, detail="Failed to update job status"
         )
-
-
+    
 def fetch_data_task(request: CityIDRequest, db: Session):
+    global active_tasks
+    with active_tasks_lock:
+        active_tasks += 1
+
     fastapi_save_posts_url = "http://jobs_service:8000/save-posts/"
     job_id = request.id
 
@@ -146,6 +152,11 @@ def fetch_data_task(request: CityIDRequest, db: Session):
         update_job_status(job_id, "failed", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+    finally:
+        with active_tasks_lock:
+            active_tasks -= 1
+
+
 @app.post("/fetch-data", response_model=TaskResponse)
 def fetch_data(
     request: CityIDRequest,
@@ -157,4 +168,6 @@ def fetch_data(
 
 @app.get("/status", include_in_schema=False)
 def get_status():
-    return {"status": "busy" if is_busy else "free"}
+    global active_tasks
+    with active_tasks_lock:
+        return {"status": "busy" if active_tasks == 4 else "free"}
