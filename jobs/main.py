@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 import json
 from sql_app.schemas import JobCreate, City
 from sql_app import crud
-
+from pydantic import BaseModel
+from typing import Dict
 
 models.Base.metadata.create_all(bind=engine)
 redis_client = redis.Redis(host="redis", port=6379)
@@ -62,3 +63,20 @@ async def send_job():
         return job
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+class CrawlerStatus(BaseModel):
+    status: str
+
+crawler_status: Dict[str, str] = {"status": "unknown"}
+
+@app.post("/crawler-status/")
+def update_crawler_status(status: CrawlerStatus):
+    crawler_status["status"] = status.status
+    return {"message": "Status updated"}
+
+@app.get("/crawler-status/")
+def get_crawler_status():
+    return crawler_status
