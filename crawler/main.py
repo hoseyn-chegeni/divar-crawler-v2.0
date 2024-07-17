@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from sql_app import models
 from sql_app.database import engine, get_db
 from sql_app import sql_main
@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import requests
 from datetime import datetime, timedelta
 from sql_app.crud import create_post, delete_posts
-from sql_app.schemas import PostCreate, Post
+from sql_app.schemas import PostCreate, Post, TaskResponse
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -26,21 +26,18 @@ class CityIDRequest(BaseModel):
 
 
 is_busy = False
+def update_job_status(job_id: int, status: str, message: Optional[str] = None):
+    url = f"http://jobs_service:8000/update-job-status/{job_id}"
+    data = {"status": status, "message": message}
+    response = requests.put(url, json=data)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Failed to update job status")
 
-
-@app.post("/fetch-data", response_model=List[Post])
-def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
+def fetch_data_task(request: CityIDRequest, db: Session):
     fastapi_save_posts_url = "http://jobs_service:8000/api/v1/save-posts/"
     global is_busy
     is_busy = True
     job_id = request.id
-
-    def update_job_status(job_id: int, status: str, message: Optional[str] = None):
-        url = f"http://jobs_service:8000/update-job-status/{job_id}"
-        data = {"status": status, "message": message}
-        response = requests.put(url, json=data)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Failed to update job status")
 
     try:
         # Set job status to in_progress
@@ -152,7 +149,10 @@ def fetch_data(request: CityIDRequest, db: Session = Depends(get_db)):
     finally:
         is_busy = False
 
-    return all_saved_posts
+@app.post("/fetch-data", response_model=TaskResponse)
+def fetch_data(request: CityIDRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    background_tasks.add_task(fetch_data_task, request, db)
+    return {"message": "Task started"}
 
 
 @app.get("/status")

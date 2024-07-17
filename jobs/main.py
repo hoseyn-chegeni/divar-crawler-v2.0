@@ -92,7 +92,7 @@ async def get_status(job_id: int, db: Session = Depends(get_db)):
 
 
 
-@app.put("/update-job-status/{job_id}", response_model=JobBase)
+@app.put("/update-job-status/{job_id}", response_model=JobBase, include_in_schema=False)
 async def update_job_status(job_id: int, request: UpdateJobStatusRequest, db: Session = Depends(get_db)):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
     if not job:
